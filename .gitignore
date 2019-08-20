@@ -1,5 +1,6 @@
 *.ipynb
 .ipynb_checkpoints/
 data/*.csv
+data/*.sql
 .envs/
 Pipfile
