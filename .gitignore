@@ -2,7 +2,7 @@
 .ipynb_checkpoints/
 data/*.csv
 data/*.sql
-webapp/data/*.csv
-webapp/data/*.sql
+webapp/data/
+webapp/data/
 .envs/
 Pipfile
