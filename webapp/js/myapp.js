@@ -13,9 +13,9 @@ Promise.all([
     d3.csv("data/export_m01.csv", conversor),
     d3.csv("data/weather.csv")
 ]).then(function(files){
-  data1 = files[0].filter(l => l.offset == 0)
-  data = files[1].filter(l => l.offset == 0)
-  data2 = files[2].filter(l => l.offset == 0)
+  data1 = files[0].filter(l => l.offset == 0 && l.date >= '2019-03-26 22:03:22 +0100')
+  data = files[1].filter(l => l.offset == 0 && l.date >= '2019-03-26 22:03:22 +0100')
+  data2 = files[2].filter(l => l.offset == 0 && l.date >= '2019-03-26 22:03:22 +0100')
   weather = files[3]
 
   init_vis()
@@ -92,14 +92,10 @@ function draw_heatmap(){
   var colorBar = d3.scaleLinear()
     .range(["yellow", "red"])
     .domain([1, 10000])
-  
-  var x = d3.scaleBand()
-    .range([0,width], 0.5)
-    .domain(data.map(d => d.date));
 
   var x = d3.scaleTime()
     .range([0,width], 0.5)
-    .domain([new Date("2018-12-10 09:01:42"), new Date("2019-08-07 10:50:03")]);
+    .domain([new Date("2019-03-26 09:01:42"), new Date("2019-08-07 10:50:03")]);
 
   heatmap_muf = svg
     .append("g")
@@ -206,7 +202,7 @@ function draw_weather(){
   
   x = d3.scaleTime()
     .range([0,width], 0.5)
-    .domain([new Date("2018-12-10 09:01:42"), new Date("2019-08-07 10:50:03")]);
+    .domain([new Date("2019-03-26 09:01:42"), new Date("2019-08-07 10:50:03")]);
 
   var line = (y_scale) => d3.line()
     .curve(d3.curveBasis)
@@ -232,6 +228,37 @@ function draw_weather(){
     .style("fill","none")
     .attr("stroke", "blue")
     .attr("stoke-width", 3)
+
+
+
+  var circle = svg1.append("circle")
+    .attr("r", 5)
+    .attr("transform", "translate(" + [x(new Date("2019-03-26 00:00:00")),y(9)] + ")");
+
+
+  transition()
+
+  function transition(){
+    circle.transition()
+        .duration(10000)
+        .attrTween("transform", translateAlong(weather_plot.node()))
+        .each("end", transition);
+  }
+
+  // Returns an attrTween for translating along the specified path element.
+  function translateAlong(path) {
+    var l = path.getTotalLength();
+    return function(d, i, a) {
+      return function(t) {
+        var p = path.getPointAtLength(t * l);
+        console.log(p.x, p.y)
+        return "translate(" + p.x + "," + p.y + ")";
+      };
+    };
+  }
+
+
+  /// Legend  
 
   var size = 20
   svg1.selectAll("mydots")
