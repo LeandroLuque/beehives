@@ -138,6 +138,18 @@ function draw_heatmap(){
     .text(d => d[0])
     .attr("x", 10)
     .attr("y", d => d[1] * 100 + 25)
+
+
+  svg.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(0,150)")
+      .call(d3.axisBottom(x)
+              .tickFormat(d3.timeFormat("%Y-%m-%d")))
+      .selectAll("text")  
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", ".15em")
+        .attr("transform", "rotate(-65)");
 }
 
 
@@ -194,11 +206,11 @@ function draw_weather(){
 
   y = d3.scaleLinear()
     .range([height/2,0])
-    .domain([-5, 40])
+    .domain([0, 100])
 
   y1 = d3.scaleLinear()
     .range([height/2,0])
-    .domain([0, 150])
+    .domain([0, 1])
   
   x = d3.scaleTime()
     .range([0,width], 0.5)
@@ -214,69 +226,52 @@ function draw_weather(){
     .selectAll("temp")
     .data(weather)
     .enter().append("path")
-    .attr("d", line(y)(weather.map(l => ({x: l.date, y: l.avg}))))
+    .attr("d", line(y)(weather.map(l => ({x: l.Date, y: l.Favg}))))
     .style("fill","none")
     .attr("stroke", "red")
     .attr("stoke-width", 3)
+
+  svg1.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(30,0)")
+      .call(d3.axisLeft(y));
+
+  svg1.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate("+(width-10)+",0)")
+      .call(d3.axisLeft(y1));
 
   rain_plot = svg1
     .append("g")
     .selectAll("temp")
     .data(weather)
     .enter().append("path")
-    .attr("d", line(y1)(weather.map(l => ({x: l.date, y: l.rain}))))
+    .attr("d", line(y1)(weather.map(l => ({x: l.Date, y: l.Ravg}))))
     .style("fill","none")
     .attr("stroke", "blue")
     .attr("stoke-width", 3)
 
 
 
-  var circle = svg1.append("circle")
-    .attr("r", 5)
-    .attr("transform", "translate(" + [x(new Date("2019-03-26 00:00:00")),y(9)] + ")");
-
-
-  transition()
-
-  function transition(){
-    circle.transition()
-        .duration(10000)
-        .attrTween("transform", translateAlong(weather_plot.node()))
-        .each("end", transition);
-  }
-
-  // Returns an attrTween for translating along the specified path element.
-  function translateAlong(path) {
-    var l = path.getTotalLength();
-    return function(d, i, a) {
-      return function(t) {
-        var p = path.getPointAtLength(t * l);
-        console.log(p.x, p.y)
-        return "translate(" + p.x + "," + p.y + ")";
-      };
-    };
-  }
-
-
   /// Legend  
 
   var size = 20
   svg1.selectAll("mydots")
-    .data([["Temperature",'red'], ["Rain",'blue']])
+    .data([["Temperature (°F)",'red'], ["Rain (in)",'blue']])
     .enter()
     .append("rect")
-      .attr("x", 100)
-      .attr("y", function(d,i){ return 100 + i*(size+5)})
+      .attr("x", 80)
+      .attr("y", function(d,i){ return 50 + i*(size+5)})
       .attr("width", size)
       .attr("height", size)
       .style("fill", d => d[1])
 
   svg1.selectAll("mylabels")
-    .data([["Temperature",'red'], ["Rain",'blue']])
+    .data([["Temperature (°F)",'red'], ["Rain (in)",'blue']])
     .enter()
     .append("text")
-      .attr("x", 100 + size*1.2)
-      .attr("y", function(d,i){ return 105 + i*(size+5) + (size/2)})
+      .attr("x", 80 + size*1.2)
+      .attr("y", function(d,i){ return 50 + i*(size+5) + (size/2)})
       .style("fill", d => d)
       .text(d => d[0])
       .attr("text-anchor", "left")
