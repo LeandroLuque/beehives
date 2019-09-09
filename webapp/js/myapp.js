@@ -11,7 +11,7 @@ Promise.all([
     d3.csv("data/export_m05.csv", conversor),
     d3.csv("data/export_muf.csv", conversor),
     d3.csv("data/export_m01.csv", conversor),
-    d3.csv("data/weather.csv")
+    d3.csv("data/full_weather.csv")
 ]).then(function(files){
   data1 = files[0].filter(l => l.offset == 0 && l.date >= '2019-03-26 22:03:22 +0100')
   data = files[1].filter(l => l.offset == 0 && l.date >= '2019-03-26 22:03:22 +0100')
@@ -231,16 +231,6 @@ function draw_weather(){
     .attr("stroke", "red")
     .attr("stoke-width", 3)
 
-  svg1.append("g")
-      .attr("class", "axis")
-      .attr("transform", "translate(30,0)")
-      .call(d3.axisLeft(y));
-
-  svg1.append("g")
-      .attr("class", "axis")
-      .attr("transform", "translate("+(width-10)+",0)")
-      .call(d3.axisLeft(y1));
-
   rain_plot = svg1
     .append("g")
     .selectAll("temp")
@@ -250,6 +240,16 @@ function draw_weather(){
     .style("fill","none")
     .attr("stroke", "blue")
     .attr("stoke-width", 3)
+
+  svg1.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(30,0)")
+      .call(d3.axisLeft(y));
+
+  svg1.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate("+(width-10)+",0)")
+      .call(d3.axisLeft(y1));
 
 
 
