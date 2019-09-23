@@ -24,7 +24,7 @@ Promise.all([
     d3.csv("data/full_weather.csv")
   ]).then(function(files) {
 
-  data = files[0].slice(-3000)
+  data = files[0].slice(-15000)
   weather = files[1]
 
   // What are the numeric variables in this dataset? How many do I have
@@ -215,3 +215,7 @@ function conversor(d){
     rootVarienceFrequency: +d.rootVarienceFrequency
   }
 }
+
+
+
+

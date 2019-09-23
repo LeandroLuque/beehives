@@ -1,4 +1,4 @@
-var data, data1, data2, weather
+var data, data1, data2, weather, starLines
 
 // set the dimensions and margins of the graph
 var width = 1240
@@ -11,7 +11,7 @@ Promise.all([
     d3.csv("data/export_m05.csv", conversor),
     d3.csv("data/export_muf.csv", conversor),
     d3.csv("data/export_m01.csv", conversor),
-    d3.csv("data/full_weather.csv")
+    d3.csv("data/full_weather.csv", conversor1)
 ]).then(function(files){
   data1 = files[0].filter(l => l.offset == 0 && l.date >= '2019-03-26 22:03:22 +0100')
   data = files[1].filter(l => l.offset == 0 && l.date >= '2019-03-26 22:03:22 +0100')
@@ -23,7 +23,16 @@ Promise.all([
   //draw_histogram()
   //draw_linechart()
   draw_weather()
+  draw_starplot(data)
 })
+
+function conversor1(d){
+  return {
+    date: d.date,
+    Favg: +d.Favg,
+    Ravg: +d.Ravg
+  }
+}
 
 
 function conversor(d){
@@ -41,13 +50,13 @@ function init_vis(){
   svg =  d3.select("#heatmap")
           .append("svg")
             .attr("width", width)
-            .attr("height", height)
+            .attr("height", height/2)
             // .call(d3.zoom().on("zoom", function () {
             //    svg.attr("transform", d3.event.transform)
             // }))
           .append("g")
             .attr("width", width)
-            .attr("height", height)
+            .attr("height", height/2)
 
   svg1 =  d3.select("#histogram")
           .append("svg")
@@ -56,6 +65,16 @@ function init_vis(){
           .append("g")
             .attr("width", width)
             .attr("height", height/2)
+
+  svg2 =  d3.select("#starplot")
+          .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+          .append("g")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("transform", "translate(" + width/2 + "," + height/2 + ")");
+
 
   var colorBar1 = (min, max) => d3.scaleLinear()
               .range(["yellow", "red"])
@@ -67,15 +86,15 @@ function init_vis(){
 
       var option = d3.select(this).property("value")
 
-      var max_v = d3.max([data, data1, data2], function(d){return d3.max(d, l => l[option])})
-      var min_v = d3.min([data, data1, data2], function(d){return d3.min(d, l => l[option])})
+      var max_v = d3.max([data], function(d){return d3.max(d, l => l[option])})
+      var min_v = d3.min([data], function(d){return d3.min(d, l => l[option])})
       
       console.log(min_v, max_v)
 
 
       let c = colorBar1(min_v, max_v)
 
-      d3.map([heatmap_muf, heatmap_m01, heatmap_m05], selector =>
+      d3.map([heatmap_muf], selector =>
 
           selector
             .transition()
@@ -108,26 +127,27 @@ function draw_heatmap(){
     .attr("width", 1)
     .attr("height", 50)
 
-  heatmap_m05 = svg
-    .append("g")
-    .selectAll("bar")
-    .data(data1.filter(l => l.offset == 0))
-    .enter().append("rect")
-    .style("fill", d => colorBar(d.bandwidth))
-    .attr("x", d => x(new Date(d.date.split(" ").slice(0,2).join(" "))))
-    .attr("y", d => 50)
-    .attr("width", 1)
-    .attr("height", 50)
+  
+  // heatmap_m05 = svg
+  //   .append("g")
+  //   .selectAll("bar")
+  //   .data(data1.filter(l => l.offset == 0))
+  //   .enter().append("rect")
+  //   .style("fill", d => colorBar(d.bandwidth))
+  //   .attr("x", d => x(new Date(d.date.split(" ").slice(0,2).join(" "))))
+  //   .attr("y", d => 50)
+  //   .attr("width", 1)
+  //   .attr("height", 50)
 
-  heatmap_m01 = svg
-    .append("g")
-    .selectAll("bar")
-    .data(data2.filter(l => l.offset == 0))
-    .enter().append("rect")
-    .style("fill", d => colorBar(d.bandwidth))
-    .attr("x", d => x(new Date(d.date.split(" ").slice(0,2).join(" "))))
-    .attr("y", d => 100)
-    .attr("width", 1)
+  // heatmap_m01 = svg
+  //   .append("g")
+  //   .selectAll("bar")
+  //   .data(data2.filter(l => l.offset == 0))
+  //   .enter().append("rect")
+  //   .style("fill", d => colorBar(d.bandwidth))
+  //   .attr("x", d => x(new Date(d.date.split(" ").slice(0,2).join(" "))))
+  //   .attr("y", d => 100)
+  //   .attr("width", 1)
     .attr("height", 50)
 
   labels = svg
@@ -150,6 +170,35 @@ function draw_heatmap(){
         .attr("dx", "-.8em")
         .attr("dy", ".15em")
         .attr("transform", "rotate(-65)");
+
+  var brush = d3.brushX()
+    .extent([
+        [0, 0],
+        [width, 150]
+    ])
+    .on("brush end", brushed)
+
+  function brushed() {
+      var selection = d3.event.selection;
+
+      if (selection !== null) {
+          var e = d3.event.selection.map(x.invert, x);
+
+          if (starLines == null)
+            return
+
+          starLines.style("opacity", function(d){
+            var date = new Date(d.date.split(" ").slice(0,2).join(" "))
+            return (e[0] <= date && date <= e[1])?1:0;
+          })
+      }
+  }
+
+  svg.append("g")
+    .attr("class", "brush")
+    .call(brush)
+    .call(brush.move, x.range())
+
 }
 
 
@@ -226,7 +275,7 @@ function draw_weather(){
     .selectAll("temp")
     .data(weather)
     .enter().append("path")
-    .attr("d", line(y)(weather.map(l => ({x: l.Date, y: l.Favg}))))
+    .attr("d", line(y)(weather.map(l => ({x: l.date, y: l.Favg}))))
     .style("fill","none")
     .attr("stroke", "red")
     .attr("stoke-width", 3)
@@ -236,7 +285,7 @@ function draw_weather(){
     .selectAll("temp")
     .data(weather)
     .enter().append("path")
-    .attr("d", line(y1)(weather.map(l => ({x: l.Date, y: l.Ravg}))))
+    .attr("d", line(y1)(weather.map(l => ({x: l.date, y: l.Ravg}))))
     .style("fill","none")
     .attr("stroke", "blue")
     .attr("stoke-width", 3)
@@ -250,8 +299,6 @@ function draw_weather(){
       .attr("class", "axis")
       .attr("transform", "translate("+(width-10)+",0)")
       .call(d3.axisLeft(y1));
-
-
 
   /// Legend  
 
@@ -275,6 +322,89 @@ function draw_weather(){
       .style("fill", d => d)
       .text(d => d[0])
       .attr("text-anchor", "left")
+}
+
+
+
+function draw_starplot(data){
+
+  const HALF_PI = Math.PI / 2;
+
+  const angleSlice = Math.PI * 2 / 4
+
+  const axes = ["peakFrequency", "bandwidth", "rootVarienceFrequency", "spectralCentroid"]
+  
+  let values = axes.map(l => d3.mean(data.map(s => s[l])))
+
+  let average_shape = {};
+  axes.forEach((key, i) => average_shape[key] = values[i]);
+
+  console.log(average_shape)
+
+  const axes_values = axes.map(l => ({axis: l , value: d3.max(data, s => s[l])}))
+
+
+  scales = {}
+  for (let i in axes_values) {
+    scales[axes_values[i].axis] = d3.scaleLinear()
+      .range([0, 340])
+      .domain([0, axes_values[i].value])
+  } 
+
+  var axis = svg2.selectAll(".axis")
+    .data(axes_values)
+    .enter()
+    .append("g")
+    .attr("class", "axis");
+
+  //Append the lines
+  axis.append("line")
+    .attr("x1", 0)
+    .attr("y1", 0)
+    .attr("x2", (d, i) => 340 * Math.cos(angleSlice * i - HALF_PI))
+    .attr("y2", (d, i) => 340 * Math.sin(angleSlice * i - HALF_PI))
+    .attr("class", "line")
+    .style("stroke", "black")
+    .style("stroke-width", "2px");
+
+
+  axis.append("text")
+    .attr("class", "legend")
+    .style("font-size", "11px")
+    .attr("text-anchor", "middle")
+    .attr("dy", "0.35em")
+    .attr("x", (d,i) => 340 * Math.cos(angleSlice * i - HALF_PI))
+    .attr("y", (d,i) => 340 * Math.sin(angleSlice * i - HALF_PI))
+    .text(d => d.axis)
+    .attr("font-size", "20px")
+
+
+  const radarLine = d3.radialLine()
+    .curve(d3.curveLinearClosed)
+    .radius(d => d)
+    .angle((d,i) => i * angleSlice);
+
+  //radarLine.curve(d3.curveCardinalClosed)
+
+
+  starLines = svg2.selectAll(".radarWrapper")
+    .remove().exit()
+    .data(data)
+    .enter().append("path")
+    .attr("class", "radarArea")
+    .attr("d", d => radarLine(axes.map(l => d[l] = scales[l](d[l]))))
+    .style("fill", "none")
+    .style("stroke", "black")
+
+  avaerage_line = svg2.selectAll(".avg")
+    .data([average_shape])
+    .enter()
+    .append("path")
+    .attr("class", "radarArea")
+    .attr("d", d => radarLine(axes.map(l => d[l] = scales[l](d[l]))))
+    .style("fill", "none")
+    .style("stroke", "green")
+    .style("stroke-width", 5)
 
 
 }
