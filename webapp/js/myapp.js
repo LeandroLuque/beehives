@@ -96,8 +96,8 @@ function init_vis(){
       var option = d3.select(this).property("value")
       starLines.remove()
       avg_shape.remove()
-      d1_shape.remove()
-      d2_shape.remove()
+      // d1_shape.remove()
+      // d2_shape.remove()
       draw_starplot(fake_state[option])
     })
 }
@@ -259,36 +259,18 @@ function draw_starplot(plotdata){
 
   avg_shape = svg2.selectAll(".avg")
     .remove().exit()  
-    .data([average_shape]).enter()
+    .data([average_shape, deviation1_shape, deviation2_shape]).enter()
     .append("path")
     .attr("class", "radarArea")
     .attr("d", d => radarLine(axes.map(l => d[l] = scales[l](d[l]))))
     .style("fill", "none")
     .style("stroke", "red")
     .style("stroke-width", 3)
-
-  d1_shape = svg2.selectAll(".avg")
-    .remove().exit()
-    .data([deviation1_shape]).enter()
-    .append("path")
-    .attr("class", "radarArea")
-    .attr("d", d => radarLine(axes.map(l => d[l] = scales[l](d[l]))))
-    .style("fill", "none")
-    .style("stroke", "red")
-    .style("stroke-width", 3)
-    .style("stroke-dasharray", ("3, 3"))
-
-  d2_shape = svg2.selectAll(".avg")
-    .remove().exit()
-    .data([deviation2_shape]).enter()
-    .append("path")
-    .attr("class", "radarArea")
-    .attr("d", d => radarLine(axes.map(l => d[l] = scales[l](d[l]))))
-    .style("fill", "none")
-    .style("stroke", "red")
-    .style("stroke-width", 3)
-    .style("stroke-dasharray", ("3, 3"))
-
+    .style("stroke-dasharray", function(d, i){
+      if (i != 0)
+        return ("3, 3")
+    })
+    
   //Draw axis
   var axis = svg2.selectAll(".axis")
     .remove().exit()
