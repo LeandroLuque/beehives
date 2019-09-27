@@ -3,6 +3,12 @@
 <head>
 	<meta charset="utf-8"/>
 	<title> Data</title>
+	<style type="text/css">
+		.container {
+			display: flex;
+		}
+
+	</style>
 </head>
 <body>
 
@@ -13,22 +19,28 @@
 		<option value="rootVarienceFrequency"> Root Variance Frequency</option>
 	</select>
 
+	<select id="datasets" value="bandwidth">
+		<option value="muf"> Muf Dataset</option>
+		<option value="m01"> M01 Dataset</option>
+		<option value="m05"> M05 Dataset</option>
+	</select>
+
 	<br>
 	<br>
 
-	<div id="histogram"></div>
-	<div id="heatmap"></div>
-	<div id="starplot"></div>
+	<div class="container">
+		<div class="item">
+			<div id="histogram"></div>
+			<div id="heatmap"></div>
+		</div>
+		<div class="item">
+			<div id="starplot"></div>		
+		</div>
+	</div>
 
-	<!-- <div id="colorbar"></div>-->
-	<!-- <div id="my_dataviz"></div>
- -->
 	<script src="https://d3js.org/d3.v5.min.js"></script>
 	<script type="text/javascript" src="js/underscore-min.js"></script>
 	<script type="text/javascript" src="js/myapp.js"></script>
-	<!-- <script src="js/myapp2.js"></script> -->
-	<!-- <script src="js/myapp3.js"></script> -->
-
 
 </body>
 </html>
