@@ -96,8 +96,6 @@ function init_vis(){
       var option = d3.select(this).property("value")
       starLines.remove()
       avg_shape.remove()
-      // d1_shape.remove()
-      // d2_shape.remove()
       draw_starplot(fake_state[option])
     })
 }
@@ -270,7 +268,7 @@ function draw_starplot(plotdata){
       if (i != 0)
         return ("3, 3")
     })
-    
+
   //Draw axis
   var axis = svg2.selectAll(".axis")
     .remove().exit()
